@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Destination Info</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+            height: 100vh;
+        }
+        .left, .right {
+            width: 50%;
+            padding: 20px;
+        }
+        .left {
+            background-color: #f0f8ff;
+            border-right: 1px solid #ccc;
+        }
+        .right {
+            background-color: #fff;
+        }
+        input, button, select {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+            width: calc(100% - 40px);
+        }
+        #results, #weather {
+            margin-top: 20px;
+        }
+        .location, .place {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            background-color: #f9f9f9;
+        }
+        .location:hover, .place:hover {
+            background-color: #e0e0e0;
+        }
+        .forecast {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            gap: 10px;
+        }
+        .day {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            width: calc(30% - 20px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .day img {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 10px;
+        }
+        .day:hover {
+            background-color: #e0e0e0;
+        }
+        h1 {
+            text-align: center;
+        }
+        h2 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="left">
+        <h1>Weather Forecast</h1>
+        <div id="weather"></div>
+    </div>
+    <div class="right">
+        <h1>Search Locations</h1>
+        <input type="text" id="city-input" placeholder="Enter location">
+        <button id="search-button">Search</button>
+        <div id="results"></div>
+    </div>
+    <script>
+        const searchButton = document.getElementById('search-button');
+        const cityInput = document.getElementById('city-input');
+        const resultsDiv = document.getElementById('results');
+        const weatherDiv = document.getElementById('weather');
+        let selectedLocation = null;
+
+        searchButton.addEventListener('click', async () => {
+            const query = cityInput.value.trim();
+            if (!query) {
+                resultsDiv.innerHTML = '<p style="color: red;">Enter a city name</p>';
+                return;
+            }
+            try {
+                const response = await fetch(`/api/search?query=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                resultsDiv.innerHTML = '';
+                weatherDiv.innerHTML = '';
+                if (data.error) {
+                    resultsDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
+                } else {
+                    data.forEach(location => {
+                        const div = document.createElement('div');
+                        div.className = 'location';
+                        div.textContent = `${location.display_name}`;
+                        div.addEventListener('click', () => {
+                            selectedLocation = location;
+                            resultsDiv.innerHTML = '';
+                            displayWeather(location);
+                        });
+                        resultsDiv.appendChild(div);
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = '<p style="color: red;">Error, try again.</p>';
+            }
+        });
+
+        async function displayWeather(location) {
+            try {
+                const response = await fetch(`/api/weather?latitude=${location.latitude}&longitude=${location.longitude}`);
+                const data = await response.json();
+                if (data.error) {
+                    weatherDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
+                } else {
+                    const forecast = data.forecast;
+                    let html = `<h2>Weather forecast for ${location.display_name}</h2><div class="forecast">`;
+                    forecast.forEach(day => {
+                        html += `
+                            <div class="day">
+                                <img src="/static/icons/${getWeatherIcon(day.weathercode)}" alt="Weather icon" />
+                                <p><strong>${day.date}</strong></p>
+                                <p>Day: ${day.temp_day}°C</p>
+                                <p>Night: ${day.temp_night}°C</p>
+                                <p>${getWeatherDescription(day.weathercode)}</p>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                    weatherDiv.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                weatherDiv.innerHTML = '<p style="color: red;">Failed to fetch weather data.</p>';
+            }
+        }
+
+        function getWeatherIcon(code) {
+            const iconMapping = {
+                sunny: [0],
+                partly_cloudy: [1, 2],
+                cloudy: [3],
+                rain: [51, 53, 55, 56, 57],
+                rain_shower: [61, 63, 65, 80, 81, 82],
+                snow_rain: [66, 67],
+                snow: [71, 73, 75, 77, 85, 86],
+                fog: [45, 48],
+                storm: [95, 96, 99],
+            };
+            for (const [icon, codes] of Object.entries(iconMapping)) {
+                if (codes.includes(code)) {
+                    return `${icon}.png`;
+                }
+            }
+            return 'unknown.png';
+        }
+        function getWeatherDescription(code) {
+            const descriptions = {
+                0: "Clear sky",
+                1: "Mainly clear",
+                2: "Partly cloudy",
+                3: "Overcast",
+                45: "Fog",
+                48: "Depositing rime fog",
+                51: "Drizzle: Light intensity",
+                53: "Drizzle: Moderate intensity",
+                55: "Drizzle: Dense intensity",
+                56: "Freezing Drizzle: Light intensity",
+                57: "Freezing Drizzle: Dense intensity",
+                61: "Rain: Slight intensity",
+                63: "Rain: Moderate intensity",
+                65: "Rain: Heavy intensity",
+                66: "Freezing Rain: Light intensity",
+                67: "Freezing Rain: Heavy intensity",
+                71: "Snow fall: Slight intensity",
+                73: "Snow fall: Moderate intensity",
+                75: "Snow fall: Heavy intensity",
+                77: "Snow grains",
+                80: "Rain showers: Slight",
+                81: "Rain showers: Moderate",
+                82: "Rain showers: Violent",
+                85: "Snow showers: Slight",
+                86: "Snow showers: Heavy",
+                95: "Thunderstorm: Slight or moderate",
+                96: "Thunderstorm with hail: Slight",
+                99: "Thunderstorm with hail: Heavy",
+            };
+            return descriptions[code] || "Unknown weather";
+        }
+    </script>
+</body>
+</html>
