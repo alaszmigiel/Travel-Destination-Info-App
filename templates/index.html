@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Travel Destination Info</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,15 +21,15 @@
             align-items: flex-start;
             height: 100vh;
         }
-        .left, .right {
-            width: 50%;
-            padding: 20px;
-        }
         .left {
+            width: 60%;
+            padding: 20px;
             background-color: #f0f8ff;
             border-right: 1px solid #ccc;
         }
         .right {
+            width: 40%;
+            padding: 20px;
             background-color: #fff;
         }
         input, button, select {
@@ -32,7 +38,7 @@
             margin: 10px;
             width: calc(100% - 40px);
         }
-        #results, #weather {
+        #results, #weather, #nearby-places {
             margin-top: 20px;
         }
         .location, .place {
@@ -57,7 +63,8 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             background-color: #f9f9f9;
-            width: calc(30% - 20px);
+            font-size: 12px;
+            width: calc(12% - 20px);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -69,6 +76,10 @@
         }
         .day:hover {
             background-color: #e0e0e0;
+        }
+        #map {
+            height: 300px;
+            margin-bottom: 20px;
         }
         h1 {
             text-align: center;
@@ -85,21 +96,76 @@
     </div>
     <div class="right">
         <h1>Search Locations</h1>
-        <input type="text" id="city-input" placeholder="Enter location">
+        <label for="place-input"></label><input type="text" id="place-input" placeholder="Enter a place">
         <button id="search-button">Search</button>
         <div id="results"></div>
+        <h2>Nearby Places</h2>
+        <div id="map"></div>
+        <label for="place-type"></label><select id="place-type">
+            <option value="restaurant">Restaurants</option>
+            <option value="hotel">Hotels</option>
+            <option value="museum">Museums</option>
+            <option value="monument">Monuments</option>
+            <option value="park">Parks</option>
+        </select>
+        <label for="radius"></label><select id="radius">
+            <option value="1000">1 km</option>
+            <option value="3000" selected>3 km</option>
+            <option value="5000">5 km</option>
+            <option value="7000">7 km</option>
+        </select>
+        <button id="nearby-button">Search Nearby</button>
+        <div id="nearby-places"></div>
     </div>
     <script>
         const searchButton = document.getElementById('search-button');
-        const cityInput = document.getElementById('city-input');
+        const placeInput = document.getElementById('place-input');
         const resultsDiv = document.getElementById('results');
         const weatherDiv = document.getElementById('weather');
+        const placeTypeSelect = document.getElementById('place-type');
+        const nearbyButton = document.getElementById('nearby-button');
+        const nearbyPlacesDiv = document.getElementById('nearby-places');
+        const mapDiv = document.getElementById('map');
+
         let selectedLocation = null;
+        let map;
+        let markers = [];
+
+        function initializeMap(lat, lng) {
+            if (!map) {
+                map = L.map('map').setView([lat, lng], 13);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+                }).addTo(map);
+            } else {
+                map.setView([lat, lng], 13);
+            }
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+        }
+
+        const customIcon = L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/1673/1673221.png',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
+        });
+
+        function addMarker(lat, lng, text) {
+            const marker = L.marker([lat, lng]).addTo(map);
+            marker.bindPopup(text).openPopup();
+            markers.push(marker);
+        }
+        function clearMarkers() {
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+        }
 
         searchButton.addEventListener('click', async () => {
-            const query = cityInput.value.trim();
+            const query = placeInput.value.trim();
             if (!query) {
-                resultsDiv.innerHTML = '<p style="color: red;">Enter a city name</p>';
+                resultsDiv.innerHTML = '<p style="color: red;">Enter a place</p>';
                 return;
             }
             try {
@@ -107,6 +173,7 @@
                 const data = await response.json();
                 resultsDiv.innerHTML = '';
                 weatherDiv.innerHTML = '';
+                nearbyPlacesDiv.innerHTML = '';
                 if (data.error) {
                     resultsDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
                 } else {
@@ -114,10 +181,14 @@
                         const div = document.createElement('div');
                         div.className = 'location';
                         div.textContent = `${location.display_name}`;
+                        div.dataset.location = JSON.stringify(location);
                         div.addEventListener('click', () => {
                             selectedLocation = location;
+                            selectLocation(location);
                             resultsDiv.innerHTML = '';
                             displayWeather(location);
+                            initializeMap(location.latitude, location.longitude);
+                            L.marker([location.latitude, location.longitude], {icon: customIcon}).addTo(map);
                         });
                         resultsDiv.appendChild(div);
                     });
@@ -128,10 +199,31 @@
             }
         });
 
+        async function selectLocation(location) {
+            try {
+                const response = await fetch('/api/select_location', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(location)
+                });
+                const data = await response.json();
+                if (data.error) {
+                    console.error('Error selecting location:', data.error);
+                } else {
+                    console.log('Location selected:', data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
         async function displayWeather(location) {
             try {
                 const response = await fetch(`/api/weather?latitude=${location.latitude}&longitude=${location.longitude}`);
                 const data = await response.json();
+
                 if (data.error) {
                     weatherDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
                 } else {
@@ -176,6 +268,7 @@
             }
             return 'unknown.png';
         }
+
         function getWeatherDescription(code) {
             const descriptions = {
                 0: "Clear sky",
@@ -209,6 +302,30 @@
             };
             return descriptions[code] || "Unknown weather";
         }
+        nearbyButton.addEventListener('click', async () => {
+            if (!selectedLocation) {
+                nearbyPlacesDiv.innerHTML = '<p style="color: red;">Select a place first!</p>';
+                return;
+            }
+            const placeType = placeTypeSelect.value;
+            const radius = document.getElementById('radius').value;
+            try {
+                const response = await fetch(`/api/nearby_places?latitude=${selectedLocation.latitude}&longitude=${selectedLocation.longitude}&place_type=${encodeURIComponent(placeType)}&radius=${radius}`);
+                const data = await response.json();
+                clearMarkers();
+                nearbyPlacesDiv.innerHTML = '';
+                if (data.error) {
+                    nearbyPlacesDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
+                } else {
+                    data.forEach(place => {
+                        addMarker(place.latitude, place.longitude, place.address);
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                nearbyPlacesDiv.innerHTML = '<p style="color: red;">An error occurred. Try again.</p>';
+            }
+        });
     </script>
 </body>
 </html>
