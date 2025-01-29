@@ -48,7 +48,6 @@ def select_location():
         "city": data.get("city", "Unknown City"),
         "street": data.get("street", None)
     }
-    print("DEBUG: Location saved in session:", session.get('selected_location'))
 
     return jsonify({"location": session['selected_location']}), 200
 
