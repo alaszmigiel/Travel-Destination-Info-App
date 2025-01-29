@@ -1,0 +1,357 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    background-image: url('../images/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.left {
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.navbar {
+    padding: 20px;
+    text-align: center;
+    text-decoration: none;
+}
+
+.navbar .logo {
+    font-size: 20px;
+    font-weight: bold;
+    color: #434445;
+}
+
+.left-down {
+    flex-grow: 1;
+    padding: 20px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.6);
+    margin-top: 5px;
+    border-radius: 10px;
+    margin-left: 5px;
+    align-items: center;
+    min-height: auto;
+}
+
+.right {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    height: 100vh;
+}
+
+.right-up {
+    flex: 1;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.6);
+    height: auto;
+
+}
+
+.forecast {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.day {
+    text-align: center;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 10px;
+    font-size: 15px;
+    width: calc(12% - 10px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ccc;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.day img {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 5px;
+    margin-top: 10px;
+}
+
+.day:hover {
+    background-color: black;
+}
+
+.right-down {
+    flex: 1;
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+input, select {
+    padding: 10px;
+    font-size: 16px;
+    margin: 10px;
+    border-radius: 10px;
+    width: calc(100% - 40px);
+}
+
+button {
+    padding: 10px;
+    font-size: 16px;
+    margin: 10px;
+    width: calc(100% - 18px);
+    border-radius: 10px;
+    background-color: white;
+    color: #434445;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #cccccc;
+}
+
+#results, #weather, #nearby-places {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.location, .place {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    background-color: white;
+    color: black;
+}
+
+.location:hover, .place:hover {
+    background-color: #cccccc;
+}
+
+#map {
+    height: 300px;
+    margin-bottom: 20px;
+}
+
+#lists-container {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    color: black;
+    border-radius: 5px;
+    overflow-y: visible;
+}
+
+.list-item {
+    cursor: pointer;
+    margin: 5px 0;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    background-color: white;
+    color: black;
+}
+
+.list-item:hover {
+    background-color: #cccccc;
+}
+
+.nested-list {
+    display: none;
+    margin-left: 20px;
+}
+
+.nested-list.active {
+    display: block;
+}
+
+h1, h2 {
+    text-align: center;
+    font-size: 26px;
+}
+
+.auth-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    gap: 10px;
+}
+
+.auth-buttons .button {
+    padding: 10px 15px;
+    font-size: 14px;
+    color: #434445;
+    background-color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.auth-buttons .button:hover {
+    background-color: #cccccc
+}
+
+.container {
+    width: 70%;
+    max-width: 400px;
+    margin: auto;
+    padding: 20px 40px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.container h2 {
+    margin-bottom: 10px;
+}
+
+.container input {
+    width: 100%;
+    max-width: 300px;
+    padding: 10px;
+    margin: 10px auto;
+    display: block;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.container button {
+    width: 100%;
+    max-width: 300px;
+    padding: 10px;
+    margin-top: 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: white;
+    color: #434445;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.container button:hover {
+    background-color: #595a5c;
+}
+
+.container a {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    margin-top: 20px;
+    display: inline-block;
+}
+
+.container a:hover {
+    text-decoration: underline;
+}
+
+.error {
+    color: red;
+    font-size: 14px;
+    margin: 10px 0;
+}
+.remember-me {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.remember-me input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.remember-me label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+p a {
+    color: white;
+    font-weight: bold;
+    text-decoration: none;
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 3px 6px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+p a:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+    text-decoration: underline;
+}
+
+.auth-buttons a {
+    display: inline-block;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-radius: 30px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white ;
+    text-decoration: none;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    text-align: center;
+    width: 120px;
+}
+
+.auth-buttons a:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+    transform: scale(1.08);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.hidden {
+    display: none;
+}
+
+.welcome-text {
+    font-size: 20px;
+    font-weight: bold;
+    color: #434445;
+    text-align: center;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 200px;
+}
