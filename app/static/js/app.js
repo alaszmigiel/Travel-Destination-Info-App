@@ -38,12 +38,9 @@ popupAnchor: [0, -30]
 
 function displayMessage(targetElement, message, type = 'error') {
     let color = 'red';
-    //if (type === 'success') color = 'light-green';
-    if (type === 'info') color = 'light-blue';
+    if (type === 'info') color = 'white';
 
-    targetElement.innerHTML = `<p style="color: ${color};">
-        <i class="fa fa-${type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}
-    </p>`;
+    targetElement.innerHTML = `<p style="color: ${color};">${message}</p>`;
 }
 
 function initializeMap(latitude, longitude) {
@@ -190,7 +187,8 @@ async function displayWeather(location, startDate, endDate) {
             displayMessage(weatherDiv, data.error, 'error');
         } else {
             const forecast = data.forecast;
-            let html = `<h2>Weather forecast for ${location.street}, ${location.city}  (${startDate} to ${endDate})</h2><div class="forecast">`;
+            let locationName = location.street ? `${location.street}, ${location.city}` : location.city;
+            let html = `<h2>Weather forecast for ${locationName} (${startDate} to ${endDate})</h2><div class="forecast">`;
             forecast.forEach(day => {
                 html += `
                     <div class="day">
@@ -279,7 +277,8 @@ async function restoreSelectedLocation() {
         placeInput.value = selectedLocation.display_name;
 
         initializeMap(selectedLocation.latitude, selectedLocation.longitude);
-        addMarker(selectedLocation.latitude, selectedLocation.longitude, selectedLocation.display_name);
+        currentCustomMarker = L.marker([selectedLocation.latitude, selectedLocation.longitude], { icon: customIcon }).addTo(map);
+        currentCustomMarker.bindPopup(selectedLocation.display_name).openPopup();
 
         if (data.start_date && data.end_date) {
             startDateInput.value = data.start_date;
@@ -337,7 +336,7 @@ async function updateSelectedPlace(placeContent) {
 
         const data = await response.json();
 
-        if (!response.ok) {
+        if (data.error) {
             displayMessage(placeDetailsDiv, data.error, 'error');
         }
     } catch (error) {
@@ -482,6 +481,7 @@ searchButton.addEventListener('click', async() => {
         await displayWeather(selectedLocation, startDate, endDate);
         weatherDiv.classList.remove('hidden');
         selectedPlacesDiv.classList.remove('hidden');
+        placeDetailsDiv.innerHTML = '';
     } catch (error) {
         displayMessage(errorsDiv, 'Unable to load weather data. Please try again later.', 'error');
         return;

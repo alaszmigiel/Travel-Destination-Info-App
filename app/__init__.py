@@ -1,5 +1,5 @@
 import os, glob
-from flask import Flask, render_template, session
+from flask import Flask, render_template
 from flask_session import Session
 from flask_login import LoginManager
 from app.config import Config
