@@ -84,6 +84,7 @@ async function searchLocations() {
         const response = await fetch(`/location/search?query=${encodeURIComponent(query)}`);
         const data = await response.json();
         resultsDiv.innerHTML = '';
+        searchingNearbyDiv.innerHTML = '';
         if (data.error) {
             displayMessage(resultsDiv, data.error, 'error');
         } else {
@@ -93,10 +94,19 @@ async function searchLocations() {
                 div.textContent = `${location.display_name}`;
                 div.dataset.location = JSON.stringify(location);
                 div.addEventListener('click', () => {
+                    clearSelectedPlace();
                     placeInput.value = location.display_name;
                     selectedLocation = location;
                     selectLocation(location);
                     resultsDiv.innerHTML = '';
+                    initializeMap(location.latitude, location.longitude);
+
+                    if (currentCustomMarker) {
+                        map.removeLayer(currentCustomMarker);
+                    }
+
+                    currentCustomMarker = L.marker([location.latitude, location.longitude], { icon: customIcon }).addTo(map);
+                    currentCustomMarker.bindPopup(location.display_name).openPopup();
                 });
                 resultsDiv.appendChild(div);
             });
@@ -194,8 +204,8 @@ async function displayWeather(location, startDate, endDate) {
                     <div class="day">
                         <img src="/static/icons/${getWeatherIcon(day.weathercode)}" alt="Weather icon" />
                         <p><strong>${day.date}</strong></p>
-                        <p>Day: ${day.temp_day}°C</p>
-                        <p>Night: ${day.temp_night}°C</p>
+                        <p>Day: ${day.temp_day}Â°C</p>
+                        <p>Night: ${day.temp_night}Â°C</p>
                         <p>${getWeatherDescription(day.weathercode)}</p>
                     </div>
                 `;
@@ -434,6 +444,23 @@ function generateList(data) {
     });
 }
 
+async function clearSelectedPlace() {
+    selectedPlacesDiv.classList.add('hidden');
+    placeDetailsDiv.innerHTML = '';
+    addToListButton.classList.add('hidden');
+    clearMarkers();
+
+    if (sessionStorage.getItem('selectedPlace')) {
+        sessionStorage.removeItem('selectedPlace');
+
+        try {
+            await fetch('/nearby/clear_selected_place', { method: 'POST' });
+        } catch (error) {
+            console.error('Failed to clear selected place:', error);
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     setDateLimits();
 
@@ -481,19 +508,11 @@ searchButton.addEventListener('click', async() => {
         await displayWeather(selectedLocation, startDate, endDate);
         weatherDiv.classList.remove('hidden');
         selectedPlacesDiv.classList.remove('hidden');
+        searchingNearbyDiv.innerHTML = '';
         placeDetailsDiv.innerHTML = '';
     } catch (error) {
         displayMessage(errorsDiv, 'Unable to load weather data. Please try again later.', 'error');
-        return;
     }
-
-    clearMarkers();
-    initializeMap(selectedLocation.latitude, selectedLocation.longitude);
-    if (currentCustomMarker) {
-        map.removeLayer(currentCustomMarker);
-        currentCustomMarker = null;
-    }
-    currentCustomMarker = L.marker([selectedLocation.latitude, selectedLocation.longitude], { icon: customIcon }).addTo(map);
 });
 
 nearbyButton.addEventListener('click', async () => {
@@ -518,4 +537,3 @@ listsButton.addEventListener('click', async () => {
         displayMessage(listErrorsDiv, 'Unable to load lists. Please try again.', 'error');
     }
 });
-

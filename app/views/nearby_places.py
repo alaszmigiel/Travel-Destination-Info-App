@@ -58,3 +58,7 @@ def select_nearby_place():
 
     return jsonify({"message": "Nearby place saved."})
 
+@nearby_places_bp.route('/clear_selected_place', methods=['POST'])
+def clear_selected_place():
+    session.pop('selected_nearby_place', None)
+    return jsonify({"message": "Selected place cleared"}), 200
