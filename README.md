@@ -41,6 +41,11 @@ TravelDestinationInfoApp/
 │── run.py                    # Entry point to start the Flask application
 ```
 
+## Technical Requirements
+
+- Python 3.9 or higher
+- Additional dependencies listed in requirements.txt
+
 ## Installation & Usage
 
 ### 1. Clone the repository:
