@@ -62,8 +62,8 @@ pip install -r requirements.txt
 ### 3. Set up environment:
 Before running the application, create a .flaskenv file in the root directory with the following content:
 ```sh
-FLASK_APP=run.py
-FLASK_ENV=development
+export FLASK_APP=run.py
+export FLASK_ENV=development
 ```
 
 ### 4. Set up the database:
