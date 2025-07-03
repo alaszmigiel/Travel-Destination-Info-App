@@ -204,8 +204,8 @@ async function displayWeather(location, startDate, endDate) {
                     <div class="day">
                         <img src="/static/icons/${getWeatherIcon(day.weathercode)}" alt="Weather icon" />
                         <p><strong>${day.date}</strong></p>
-                        <p>Day: ${day.temp_day}Â°C</p>
-                        <p>Night: ${day.temp_night}Â°C</p>
+                        <p>Day: ${day.temp_day}°C</p>
+                        <p>Night: ${day.temp_night}°C</p>
                         <p>${getWeatherDescription(day.weathercode)}</p>
                     </div>
                 `;
